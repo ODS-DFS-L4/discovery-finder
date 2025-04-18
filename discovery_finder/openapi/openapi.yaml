@@ -1,0 +1,2753 @@
+openapi: 3.0.0
+info:
+  description: |2
+
+    Industrial Corridors Discovery Finder & Discovery Service.
+    This service provides APIs to discover and manage industrial corridors and drone ports.
+    It includes features for authentication, data management, and health checks.
+  title: icds
+  version: 0.1.0
+servers:
+- url: /
+paths:
+  /:
+    get:
+      operationId: root_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Root
+      x-openapi-router-controller: discovery_finder.controllers.default_controller
+  /v1/api/airways/query:
+    post:
+      description: "This endpoint allows querying section of airways based on the\
+        \ area of interest. Although it uses request.POST, no changes are made to\
+        \ the database. The POST method is used instead of GET because GET does not\
+        \ support passing body parameters for querying."
+      operationId: search_for_airways_v1_api_aerial_corridors_airways_query_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryAirwayDefinitionParameters'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/QuerySingleAirwayDefinitionResponse'
+                title: Response Search For Airways V1 Api Aerial Corridors Airways
+                  Query Post
+                type: array
+          description: Successful Response
+        "400":
+          description: Bad Request
+        "404":
+          description: Operation not found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: 'Query airways '
+      tags:
+      - airways
+      x-openapi-router-controller: discovery_finder.controllers.airways_controller
+  /v1/api/airways/{airway_id}:
+    delete:
+      description: Delete an airway from the ICDS by providing the airway ID.
+      operationId: delete_airway_v1_api_aerial_corridors_airways_airway_id_delete
+      parameters:
+      - explode: false
+        in: path
+        name: airway_id
+        required: true
+        schema:
+          format: uuid
+          title: Airway Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteAirwayDefinitionResponse'
+          description: Successful Response
+        "404":
+          description: Operation not found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Delete an airway by ID
+      tags:
+      - airways
+      x-openapi-router-controller: discovery_finder.controllers.airways_controller
+    get:
+      description: Retrieve details of a specific airway by its ID.
+      operationId: get_single_airway_details_v1_api_aerial_corridors_airways_airway_id_get
+      parameters:
+      - description: The ID of the airway to retrieve.
+        explode: false
+        in: path
+        name: airway_id
+        required: true
+        schema:
+          description: The ID of the airway to retrieve.
+          format: uuid
+          title: Airway Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SingleAirwayDefinitionResponse'
+          description: Successful Response
+        "404":
+          description: Operation not found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Get details of a single airway by ID
+      tags:
+      - airways
+      x-openapi-router-controller: discovery_finder.controllers.airways_controller
+    put:
+      description: "A new airway is created or an existing one is updated by providing\
+        \ the airway ID and the new airway definition, which includes the airway name,\
+        \ junctions, and sections. The operation is idempotent."
+      operationId: create_airway_v1_api_aerial_corridors_airways_airway_id_put
+      parameters:
+      - explode: false
+        in: path
+        name: airway_id
+        required: true
+        schema:
+          format: uuid
+          title: Airway Id
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutAirwayDefinitionParameters'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpsertAirwayDefinitionResponsePublic'
+          description: Successful Response
+        "404":
+          description: Operation not found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Create or update an airway by ID
+      tags:
+      - airways
+      x-openapi-router-controller: discovery_finder.controllers.airways_controller
+  /v1/api/discovery-finder/discovery-services:
+    post:
+      description: Create a new discovery service url with details like region and
+        application type.
+      operationId: create_discovery_service_v1_api_discovery_finder_discovery_services_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SingleDiscoveryServiceDetail'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SingleDiscoveryServiceDetail'
+          description: Successful Response
+        "404":
+          description: Operation not found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Create a new discovery service URL
+      tags:
+      - discovery-finder
+      x-openapi-router-controller: discovery_finder.controllers.discovery_finder_controller
+  /v1/api/discovery-finder/discovery-services/{url_id}:
+    delete:
+      description: |-
+        Deletes a discovery service URL from the database.
+        This asynchronous function removes a discovery service URL from the database session provided.
+
+        Args:
+            db_session (DBSessionDep): The database session dependency.
+            url_id (int): The ID of the discovery service URL to be deleted.
+
+        Returns:
+            dict: A dictionary containing the status of the deletion operation.
+      operationId: delete_discovery_service_v1_api_discovery_finder_discovery_services_url_id_delete
+      parameters:
+      - explode: false
+        in: path
+        name: url_id
+        required: true
+        schema:
+          format: uuid
+          title: Url Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        "404":
+          description: Operation not found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Delete Discovery Service
+      tags:
+      - discovery-finder
+      x-openapi-router-controller: discovery_finder.controllers.discovery_finder_controller
+    get:
+      description: |-
+        Fetches discovery service URLs from the database.
+        This asynchronous function retrieves a list of discovery service URLs from the database session provided.
+
+        Returns:
+            list: A list of discovery service URLs and their details.
+      operationId: get_discovery_services_v1_api_discovery_finder_discovery_services_get
+      parameters:
+      - explode: false
+        in: path
+        name: url_id
+        required: true
+        schema:
+          title: Url Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiscoveryServiceListRead'
+          description: Successful Response
+        "404":
+          description: Operation not found
+      summary: Get Discovery Services
+      tags:
+      - discovery-finder
+      x-openapi-router-controller: discovery_finder.controllers.discovery_finder_controller
+  /v1/api/ports/query:
+    post:
+      description: Query all the drone ports in an area of interest.
+      operationId: search_drone_ports_v1_api_managed_corridors_ports_query_post
+      parameters:
+      - explode: true
+        in: query
+        name: supports_drone_type
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: usage_type
+        required: false
+        schema:
+          nullable: true
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: port_type
+        required: false
+        schema:
+          nullable: true
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: manufacturer
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: form
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryDronePortReferenceParameters'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/QueryDronePortReferenceResponse'
+                title: Response Search Drone Ports V1 Api Managed Corridors Ports
+                  Query Post
+                type: array
+          description: Successful Response
+        "400":
+          description: Bad Request
+        "404":
+          description: Operation not found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Query Drone ports
+      tags:
+      - drone-ports
+      x-openapi-router-controller: discovery_finder.controllers.drone_ports_controller
+  /v1/api/ports/{port_id}:
+    delete:
+      description: Deletes a drone port reference by its port ID.
+      operationId: delete_drone_port_reference_v1_api_managed_corridors_ports_port_id_delete
+      parameters:
+      - explode: false
+        in: path
+        name: port_id
+        required: true
+        schema:
+          format: uuid
+          title: Port Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteDronePortReferenceResponse'
+          description: Successful Response
+        "404":
+          description: Operation not found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Delete Drone Port Reference
+      tags:
+      - drone-ports
+      x-openapi-router-controller: discovery_finder.controllers.drone_ports_controller
+    get:
+      description: Retrieve details of a specific drone port by its ID.
+      operationId: get_drone_port_details_v1_api_managed_corridors_ports_port_id_get
+      parameters:
+      - description: The ID of the drone port to retrieve.
+        explode: false
+        in: path
+        name: port_id
+        required: true
+        schema:
+          description: The ID of the drone port to retrieve.
+          format: uuid
+          title: Port Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateOrUpdateDronePortReferenceResponse'
+          description: Successful Response
+        "404":
+          description: Operation not found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Get drone port reference details
+      tags:
+      - drone-ports
+      x-openapi-router-controller: discovery_finder.controllers.drone_ports_controller
+    put:
+      description: |-
+        Upsert (update or insert) a drone port reference.
+        This function handles the creation or updating of a drone port reference
+        based on the provided payload and port ID. If the drone port is created,
+        the response status code is set to 201.
+      operationId: upsert_drone_port_reference_v1_api_managed_corridors_ports_port_id_put
+      parameters:
+      - explode: false
+        in: path
+        name: port_id
+        required: true
+        schema:
+          format: uuid
+          title: Port Id
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutDronePortReferenceParameters'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateOrUpdateDronePortReferenceResponse'
+          description: Successful Response
+        "404":
+          description: Operation not found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Upsert Drone Port Reference
+      tags:
+      - drone-ports
+      x-openapi-router-controller: discovery_finder.controllers.drone_ports_controller
+  /v1/api/subscriptions/query:
+    post:
+      description: Query subscriptions in an area of interest.
+      operationId: search_subscriptions_v1_api_managed_corridors_subscriptions_query_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuerySubscriptionParameters'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/CreateOrUpdateSubscriptionResponse'
+                title: Response Search Subscriptions V1 Api Managed Corridors Subscriptions
+                  Query Post
+                type: array
+          description: Successful Response
+        "400":
+          description: Bad Request
+        "404":
+          description: Operation not found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Query Subscriptions
+      tags:
+      - subscriptions
+      x-openapi-router-controller: discovery_finder.controllers.subscriptions_controller
+  /v1/api/subscriptions/{subscription_id}:
+    delete:
+      description: Delete a subscription by its ID.
+      operationId: delete_subscription_v1_api_managed_corridors_subscriptions_subscription_id_delete
+      parameters:
+      - explode: false
+        in: path
+        name: subscription_id
+        required: true
+        schema:
+          format: uuid
+          title: Subscription Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteSubscriptionResponse'
+          description: Successful Response
+        "404":
+          description: Operation not found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Delete Subscription
+      tags:
+      - subscriptions
+      x-openapi-router-controller: discovery_finder.controllers.subscriptions_controller
+    get:
+      description: Retrieve details of a specific subscription by its ID.
+      operationId: get_subscription_v1_api_managed_corridors_subscriptions_subscription_id_get
+      parameters:
+      - description: The ID of the subscription to retrieve.
+        explode: false
+        in: path
+        name: subscription_id
+        required: true
+        schema:
+          description: The ID of the subscription to retrieve.
+          format: uuid
+          title: Subscription Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateOrUpdateSubscriptionResponse'
+          description: Successful Response
+        "404":
+          description: Operation not found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Get Subscription details
+      tags:
+      - subscriptions
+      x-openapi-router-controller: discovery_finder.controllers.subscriptions_controller
+    put:
+      description: |-
+        Upsert a subscription.
+        This endpoint creates a new subscription or updates an existing one based on the provided subscription ID.
+      operationId: upsert_subscription_v1_api_managed_corridors_subscriptions_subscription_id_put
+      parameters:
+      - explode: false
+        in: path
+        name: subscription_id
+        required: true
+        schema:
+          format: uuid
+          title: Subscription Id
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutSubscriptionParameters'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateOrUpdateSubscriptionResponse'
+          description: Successful Response
+        "404":
+          description: Operation not found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Upsert Subscription
+      tags:
+      - subscriptions
+      x-openapi-router-controller: discovery_finder.controllers.subscriptions_controller
+  /v1/api/version-availability:
+    get:
+      description: Get the status of the discovery service and software version.
+      operationId: read_version_availability_v1_api_version_availability_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionAvailabilityRead'
+          description: Successful Response
+        "404":
+          description: Operation not found
+      summary: Read Version Availability
+      tags:
+      - common
+      x-openapi-router-controller: discovery_finder.controllers.common_controller
+components:
+  schemas:
+    Airway-Input:
+      example:
+        administrator_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        business_number: 0
+        airways:
+        - name: name
+          id: id
+          sections:
+          - airway_point_ids:
+            - airway_point_ids
+            - airway_point_ids
+            name: name
+            id: id
+          - airway_point_ids:
+            - airway_point_ids
+            - airway_point_ids
+            name: name
+            id: id
+          junctions:
+          - name: name
+            airways:
+            - airway:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+              deviation:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+            - airway:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+              deviation:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+            id: id
+            type: type
+          - name: name
+            airways:
+            - airway:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+              deviation:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+            - airway:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+              deviation:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+            id: id
+            type: type
+        - name: name
+          id: id
+          sections:
+          - airway_point_ids:
+            - airway_point_ids
+            - airway_point_ids
+            name: name
+            id: id
+          - airway_point_ids:
+            - airway_point_ids
+            - airway_point_ids
+            name: name
+            id: id
+          junctions:
+          - name: name
+            airways:
+            - airway:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+              deviation:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+            - airway:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+              deviation:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+            id: id
+            type: type
+          - name: name
+            airways:
+            - airway:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+              deviation:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+            - airway:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+              deviation:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+            id: id
+            type: type
+        url: url
+      properties:
+        administrator_id:
+          format: uuid
+          title: Administrator Id
+          type: string
+        business_number:
+          title: Business Number
+          type: integer
+        airways:
+          items:
+            $ref: '#/components/schemas/SingleAirway-Input'
+          title: Airways
+          type: array
+        url:
+          title: Url
+          type: string
+      required:
+      - administrator_id
+      - airways
+      - business_number
+      - url
+      title: Airway
+      type: object
+    Airway-Output:
+      example:
+        administrator_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        business_number: 0
+        airways:
+        - name: name
+          id: id
+          sections:
+          - airway_point_ids:
+            - airway_point_ids
+            - airway_point_ids
+            name: name
+            id: id
+          - airway_point_ids:
+            - airway_point_ids
+            - airway_point_ids
+            name: name
+            id: id
+          junctions:
+          - name: name
+            airways:
+            - airway:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+              deviation:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+            - airway:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+              deviation:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+            id: id
+            type: type
+          - name: name
+            airways:
+            - airway:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+              deviation:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+            - airway:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+              deviation:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+            id: id
+            type: type
+        - name: name
+          id: id
+          sections:
+          - airway_point_ids:
+            - airway_point_ids
+            - airway_point_ids
+            name: name
+            id: id
+          - airway_point_ids:
+            - airway_point_ids
+            - airway_point_ids
+            name: name
+            id: id
+          junctions:
+          - name: name
+            airways:
+            - airway:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+              deviation:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+            - airway:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+              deviation:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+            id: id
+            type: type
+          - name: name
+            airways:
+            - airway:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+              deviation:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+            - airway:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+              deviation:
+                geometry:
+                  coordinates:
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  - - coordinates
+                    - coordinates
+                    - coordinates
+                  type: type
+            id: id
+            type: type
+        url: url
+      properties:
+        administrator_id:
+          format: uuid
+          title: Administrator Id
+          type: string
+        business_number:
+          title: Business Number
+          type: integer
+        airways:
+          items:
+            $ref: '#/components/schemas/SingleAirway-Output'
+          title: Airways
+          type: array
+        url:
+          title: Url
+          type: string
+      required:
+      - administrator_id
+      - airways
+      - business_number
+      - url
+      title: Airway
+      type: object
+    AirwayGeometry:
+      example:
+        geometry:
+          coordinates:
+          - - coordinates
+            - coordinates
+            - coordinates
+          - - coordinates
+            - coordinates
+            - coordinates
+          type: type
+      properties:
+        geometry:
+          $ref: '#/components/schemas/Geometry'
+      required:
+      - geometry
+      title: AirwayGeometry
+      type: object
+    AirwayJunction-Input:
+      example:
+        name: name
+        airways:
+        - airway:
+            geometry:
+              coordinates:
+              - - coordinates
+                - coordinates
+                - coordinates
+              - - coordinates
+                - coordinates
+                - coordinates
+              type: type
+          deviation:
+            geometry:
+              coordinates:
+              - - coordinates
+                - coordinates
+                - coordinates
+              - - coordinates
+                - coordinates
+                - coordinates
+              type: type
+        - airway:
+            geometry:
+              coordinates:
+              - - coordinates
+                - coordinates
+                - coordinates
+              - - coordinates
+                - coordinates
+                - coordinates
+              type: type
+          deviation:
+            geometry:
+              coordinates:
+              - - coordinates
+                - coordinates
+                - coordinates
+              - - coordinates
+                - coordinates
+                - coordinates
+              type: type
+        id: id
+        type: type
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        type:
+          title: Type
+          type: string
+        airways:
+          items:
+            $ref: '#/components/schemas/AirwayJunctionDetail-Input'
+          title: Airways
+          type: array
+      required:
+      - airways
+      - id
+      - name
+      - type
+      title: AirwayJunction
+      type: object
+    AirwayJunction-Output:
+      example:
+        name: name
+        airways:
+        - airway:
+            geometry:
+              coordinates:
+              - - coordinates
+                - coordinates
+                - coordinates
+              - - coordinates
+                - coordinates
+                - coordinates
+              type: type
+          deviation:
+            geometry:
+              coordinates:
+              - - coordinates
+                - coordinates
+                - coordinates
+              - - coordinates
+                - coordinates
+                - coordinates
+              type: type
+        - airway:
+            geometry:
+              coordinates:
+              - - coordinates
+                - coordinates
+                - coordinates
+              - - coordinates
+                - coordinates
+                - coordinates
+              type: type
+          deviation:
+            geometry:
+              coordinates:
+              - - coordinates
+                - coordinates
+                - coordinates
+              - - coordinates
+                - coordinates
+                - coordinates
+              type: type
+        id: id
+        type: type
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        type:
+          title: Type
+          type: string
+        airways:
+          items:
+            $ref: '#/components/schemas/AirwayJunctionDetail-Output'
+          title: Airways
+          type: array
+      required:
+      - airways
+      - id
+      - name
+      - type
+      title: AirwayJunction
+      type: object
+    AirwayJunctionDetail-Input:
+      example:
+        airway:
+          geometry:
+            coordinates:
+            - - coordinates
+              - coordinates
+              - coordinates
+            - - coordinates
+              - coordinates
+              - coordinates
+            type: type
+        deviation:
+          geometry:
+            coordinates:
+            - - coordinates
+              - coordinates
+              - coordinates
+            - - coordinates
+              - coordinates
+              - coordinates
+            type: type
+      properties:
+        airway:
+          $ref: '#/components/schemas/AirwayGeometry'
+        deviation:
+          $ref: '#/components/schemas/Deviation'
+      required:
+      - airway
+      - deviation
+      title: AirwayJunctionDetail
+      type: object
+    AirwayJunctionDetail-Output:
+      example:
+        airway:
+          geometry:
+            coordinates:
+            - - coordinates
+              - coordinates
+              - coordinates
+            - - coordinates
+              - coordinates
+              - coordinates
+            type: type
+        deviation:
+          geometry:
+            coordinates:
+            - - coordinates
+              - coordinates
+              - coordinates
+            - - coordinates
+              - coordinates
+              - coordinates
+            type: type
+      properties:
+        airway:
+          $ref: '#/components/schemas/AirwayGeometry'
+        deviation:
+          $ref: '#/components/schemas/Deviation'
+      required:
+      - airway
+      - deviation
+      title: AirwayJunctionDetail
+      type: object
+    AirwaySection:
+      example:
+        airway_point_ids:
+        - airway_point_ids
+        - airway_point_ids
+        name: name
+        id: id
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        airway_point_ids:
+          items:
+            type: string
+          title: Airway Point Ids
+          type: array
+      required:
+      - airway_point_ids
+      - id
+      - name
+      title: AirwaySection
+      type: object
+    AreaOfInterest:
+      example:
+        outline_polygon:
+          min_latitude: -75.5850925717018
+          max_longitude: 34.63682100059455
+          min_longitude: 36.988422590534526
+          max_latitude: -63.615366350946985
+      properties:
+        outline_polygon:
+          $ref: '#/components/schemas/BBoxDefinition'
+      required:
+      - outline_polygon
+      title: AreaOfInterest
+      type: object
+    AvailabilityEnum:
+      enum:
+      - unknown
+      - healthy
+      - unhealthy
+      title: AvailabilityEnum
+      type: string
+    BBoxDefinition:
+      example:
+        min_latitude: -75.5850925717018
+        max_longitude: 34.63682100059455
+        min_longitude: 36.988422590534526
+        max_latitude: -63.615366350946985
+      properties:
+        min_latitude:
+          maximum: 90
+          minimum: -90
+          title: Min Latitude
+          type: number
+        min_longitude:
+          maximum: 180
+          minimum: -180
+          title: Min Longitude
+          type: number
+        max_latitude:
+          maximum: 90
+          minimum: -90
+          title: Max Latitude
+          type: number
+        max_longitude:
+          maximum: 180
+          minimum: -180
+          title: Max Longitude
+          type: number
+      required:
+      - max_latitude
+      - max_longitude
+      - min_latitude
+      - min_longitude
+      title: BBoxDefinition
+      type: object
+    CreateOrUpdateDronePortReferenceResponse:
+      example:
+        drone_port_details:
+          altitude: 12
+          supports_drone_type: マルチコプター
+          port_type: 0
+          usage_type: 6
+          latitude: 35.12345678
+          url: https://example.com/droneport1
+          manufacturer: manufacturer
+          longitude: 140.12345678
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+      properties:
+        id:
+          format: uuid
+          title: Id
+          type: string
+        drone_port_details:
+          $ref: '#/components/schemas/DronePortDetails'
+      required:
+      - drone_port_details
+      - id
+      title: CreateOrUpdateDronePortReferenceResponse
+      type: object
+    CreateOrUpdateSubscriptionResponse:
+      example:
+        subscription_details:
+          time_start: 2000-01-23T04:56:07.000+00:00
+          notification_index: 0
+          time_end: 2000-01-23T04:56:07.000+00:00
+          version: version
+          sp_base_url: sp_base_url
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+      properties:
+        id:
+          format: uuid
+          title: Id
+          type: string
+        subscription_details:
+          $ref: '#/components/schemas/SubscriptionBase'
+      required:
+      - id
+      - subscription_details
+      title: CreateOrUpdateSubscriptionResponse
+      type: object
+    DeleteAirwayDefinitionResponse:
+      description: Delete Airway Response
+      example:
+        success: 0
+        message: message
+      properties:
+        success:
+          title: Success
+          type: integer
+        message:
+          title: Message
+          type: string
+      required:
+      - message
+      - success
+      title: DeleteAirwayDefinitionResponse
+      type: object
+    DeleteDronePortReferenceResponse:
+      example:
+        success: 0
+        message: message
+      properties:
+        success:
+          title: Success
+          type: integer
+        message:
+          title: Message
+          type: string
+      required:
+      - message
+      - success
+      title: DeleteDronePortReferenceResponse
+      type: object
+    DeleteSubscriptionResponse:
+      example:
+        success: 0
+        message: message
+      properties:
+        success:
+          title: Success
+          type: integer
+        message:
+          title: Message
+          type: string
+      required:
+      - message
+      - success
+      title: DeleteSubscriptionResponse
+      type: object
+    Deviation:
+      example:
+        geometry:
+          coordinates:
+          - - coordinates
+            - coordinates
+            - coordinates
+          - - coordinates
+            - coordinates
+            - coordinates
+          type: type
+      properties:
+        geometry:
+          $ref: '#/components/schemas/Geometry'
+      required:
+      - geometry
+      title: Deviation
+      type: object
+    DiscoveryServiceListRead:
+      description: A class to hold a list of URLs and the type of service
+      example:
+        available_services:
+        - domain: domain
+          url: url
+        - domain: domain
+          url: url
+      properties:
+        available_services:
+          items:
+            $ref: '#/components/schemas/SingleDiscoveryServiceDetail'
+          title: Available Services
+          type: array
+      required:
+      - available_services
+      title: DiscoveryServiceListRead
+      type: object
+    DronePortDetails:
+      example:
+        altitude: 12
+        supports_drone_type: マルチコプター
+        port_type: 0
+        usage_type: 6
+        latitude: 35.12345678
+        url: https://example.com/droneport1
+        manufacturer: manufacturer
+        longitude: 140.12345678
+      properties:
+        manufacturer:
+          maxLength: 24
+          minLength: 1
+          nullable: true
+          title: manufacturer
+          type: string
+        port_type:
+          $ref: '#/components/schemas/DronePortType'
+        latitude:
+          description: ドローンポート中心緯度
+          example: 35.12345678
+          maximum: 90
+          minimum: -90
+          title: Latitude
+          type: number
+        longitude:
+          description: ドローンポート中心経度
+          example: 140.12345678
+          maximum: 180
+          minimum: -180
+          title: Longitude
+          type: number
+        altitude:
+          description: ドローンポート着陸面の高さ(対地高度)
+          example: 12
+          maximum: 100
+          minimum: 0
+          title: Altitude
+          type: number
+        supports_drone_type:
+          description: 対応機体。着陸可能な機体の種類等を設定
+          example: マルチコプター
+          maxLength: 24
+          title: Supports Drone Type
+          type: string
+        usage_type:
+          $ref: '#/components/schemas/DronePortUsageType'
+        url:
+          description: ドローンポートのURL
+          example: https://example.com/droneport1
+          title: Url
+          type: string
+      required:
+      - altitude
+      - latitude
+      - longitude
+      - port_type
+      - supports_drone_type
+      - url
+      - usage_type
+      title: DronePortDetails
+      type: object
+    DronePortType:
+      enum:
+      - 1
+      - 2
+      - 3
+      title: DronePortType
+      type: integer
+    DronePortUsageType:
+      enum:
+      - 1
+      - 2
+      title: DronePortUsageType
+      type: integer
+    Geometry:
+      example:
+        coordinates:
+        - - coordinates
+          - coordinates
+          - coordinates
+        - - coordinates
+          - coordinates
+          - coordinates
+        type: type
+      properties:
+        type:
+          title: Type
+          type: string
+        coordinates:
+          items:
+            items:
+              description: TODO default missing array inner type to string
+              type: string
+            maxItems: 3
+            minItems: 3
+            type: array
+          title: Coordinates
+          type: array
+      required:
+      - coordinates
+      - type
+      title: Geometry
+      type: object
+    HTTPValidationError:
+      example:
+        detail:
+        - msg: msg
+          loc:
+          - Location_inner
+          - Location_inner
+          type: type
+        - msg: msg
+          loc:
+          - Location_inner
+          - Location_inner
+          type: type
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          title: Detail
+          type: array
+      title: HTTPValidationError
+      type: object
+    PutAirwayDefinitionParameters:
+      example:
+        airway:
+          administrator_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          business_number: 0
+          airways:
+          - name: name
+            id: id
+            sections:
+            - airway_point_ids:
+              - airway_point_ids
+              - airway_point_ids
+              name: name
+              id: id
+            - airway_point_ids:
+              - airway_point_ids
+              - airway_point_ids
+              name: name
+              id: id
+            junctions:
+            - name: name
+              airways:
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              id: id
+              type: type
+            - name: name
+              airways:
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              id: id
+              type: type
+          - name: name
+            id: id
+            sections:
+            - airway_point_ids:
+              - airway_point_ids
+              - airway_point_ids
+              name: name
+              id: id
+            - airway_point_ids:
+              - airway_point_ids
+              - airway_point_ids
+              name: name
+              id: id
+            junctions:
+            - name: name
+              airways:
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              id: id
+              type: type
+            - name: name
+              airways:
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              id: id
+              type: type
+          url: url
+      properties:
+        airway:
+          $ref: '#/components/schemas/Airway-Input'
+      required:
+      - airway
+      title: PutAirwayDefinitionParameters
+      type: object
+    PutDronePortReferenceParameters:
+      example:
+        drone_port_details:
+          altitude: 12
+          supports_drone_type: マルチコプター
+          port_type: 0
+          usage_type: 6
+          latitude: 35.12345678
+          url: https://example.com/droneport1
+          manufacturer: manufacturer
+          longitude: 140.12345678
+      properties:
+        drone_port_details:
+          $ref: '#/components/schemas/DronePortDetails'
+      required:
+      - drone_port_details
+      title: PutDronePortReferenceParameters
+      type: object
+    PutSubscriptionParameters:
+      example:
+        time_start: 2000-01-23T04:56:07.000+00:00
+        time_end: 2000-01-23T04:56:07.000+00:00
+        area_of_interest:
+          outline_polygon:
+            min_latitude: -75.5850925717018
+            max_longitude: 34.63682100059455
+            min_longitude: 36.988422590534526
+            max_latitude: -63.615366350946985
+        sp_base_url: sp_base_url
+      properties:
+        area_of_interest:
+          $ref: '#/components/schemas/AreaOfInterest'
+        time_start:
+          format: date-time
+          title: Time Start
+          type: string
+        time_end:
+          format: date-time
+          title: Time End
+          type: string
+        sp_base_url:
+          title: Sp Base Url
+          type: string
+      required:
+      - area_of_interest
+      - sp_base_url
+      - time_end
+      - time_start
+      title: PutSubscriptionParameters
+      type: object
+    QueryAirwayDefinitionParameters:
+      description: Query all Airway Definitions for an area of interest
+      example:
+        area_of_interest:
+          outline_polygon:
+            min_latitude: -75.5850925717018
+            max_longitude: 34.63682100059455
+            min_longitude: 36.988422590534526
+            max_latitude: -63.615366350946985
+      properties:
+        area_of_interest:
+          $ref: '#/components/schemas/AreaOfInterest'
+      required:
+      - area_of_interest
+      title: QueryAirwayDefinitionParameters
+      type: object
+    QueryDronePortReferenceParameters:
+      example:
+        area_of_interest:
+          outline_polygon:
+            min_latitude: -75.5850925717018
+            max_longitude: 34.63682100059455
+            min_longitude: 36.988422590534526
+            max_latitude: -63.615366350946985
+      properties:
+        area_of_interest:
+          $ref: '#/components/schemas/AreaOfInterest'
+      required:
+      - area_of_interest
+      title: QueryDronePortReferenceParameters
+      type: object
+    QueryDronePortReferenceResponse:
+      example:
+        url: url
+      properties:
+        url:
+          title: Url
+          type: string
+      required:
+      - url
+      title: QueryDronePortReferenceResponse
+      type: object
+    QuerySingleAirwayDefinitionResponse:
+      example:
+        url: url
+      properties:
+        url:
+          title: Url
+          type: string
+      required:
+      - url
+      title: QuerySingleAirwayDefinitionResponse
+      type: object
+    QuerySubscriptionParameters:
+      example:
+        area_of_interest:
+          outline_polygon:
+            min_latitude: -75.5850925717018
+            max_longitude: 34.63682100059455
+            min_longitude: 36.988422590534526
+            max_latitude: -63.615366350946985
+      properties:
+        area_of_interest:
+          $ref: '#/components/schemas/AreaOfInterest'
+      required:
+      - area_of_interest
+      title: QuerySubscriptionParameters
+      type: object
+    SingleAirway-Input:
+      example:
+        name: name
+        id: id
+        sections:
+        - airway_point_ids:
+          - airway_point_ids
+          - airway_point_ids
+          name: name
+          id: id
+        - airway_point_ids:
+          - airway_point_ids
+          - airway_point_ids
+          name: name
+          id: id
+        junctions:
+        - name: name
+          airways:
+          - airway:
+              geometry:
+                coordinates:
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                type: type
+            deviation:
+              geometry:
+                coordinates:
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                type: type
+          - airway:
+              geometry:
+                coordinates:
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                type: type
+            deviation:
+              geometry:
+                coordinates:
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                type: type
+          id: id
+          type: type
+        - name: name
+          airways:
+          - airway:
+              geometry:
+                coordinates:
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                type: type
+            deviation:
+              geometry:
+                coordinates:
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                type: type
+          - airway:
+              geometry:
+                coordinates:
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                type: type
+            deviation:
+              geometry:
+                coordinates:
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                type: type
+          id: id
+          type: type
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        junctions:
+          items:
+            $ref: '#/components/schemas/AirwayJunction-Input'
+          title: Junctions
+          type: array
+        sections:
+          items:
+            $ref: '#/components/schemas/AirwaySection'
+          title: Sections
+          type: array
+      required:
+      - id
+      - junctions
+      - name
+      - sections
+      title: SingleAirway
+      type: object
+    SingleAirway-Output:
+      example:
+        name: name
+        id: id
+        sections:
+        - airway_point_ids:
+          - airway_point_ids
+          - airway_point_ids
+          name: name
+          id: id
+        - airway_point_ids:
+          - airway_point_ids
+          - airway_point_ids
+          name: name
+          id: id
+        junctions:
+        - name: name
+          airways:
+          - airway:
+              geometry:
+                coordinates:
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                type: type
+            deviation:
+              geometry:
+                coordinates:
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                type: type
+          - airway:
+              geometry:
+                coordinates:
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                type: type
+            deviation:
+              geometry:
+                coordinates:
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                type: type
+          id: id
+          type: type
+        - name: name
+          airways:
+          - airway:
+              geometry:
+                coordinates:
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                type: type
+            deviation:
+              geometry:
+                coordinates:
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                type: type
+          - airway:
+              geometry:
+                coordinates:
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                type: type
+            deviation:
+              geometry:
+                coordinates:
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                - - coordinates
+                  - coordinates
+                  - coordinates
+                type: type
+          id: id
+          type: type
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        junctions:
+          items:
+            $ref: '#/components/schemas/AirwayJunction-Output'
+          title: Junctions
+          type: array
+        sections:
+          items:
+            $ref: '#/components/schemas/AirwaySection'
+          title: Sections
+          type: array
+      required:
+      - id
+      - junctions
+      - name
+      - sections
+      title: SingleAirway
+      type: object
+    SingleAirwayDefinitionResponse:
+      description: Put airways definition parameters
+      example:
+        airway:
+          administrator_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          business_number: 0
+          airways:
+          - name: name
+            id: id
+            sections:
+            - airway_point_ids:
+              - airway_point_ids
+              - airway_point_ids
+              name: name
+              id: id
+            - airway_point_ids:
+              - airway_point_ids
+              - airway_point_ids
+              name: name
+              id: id
+            junctions:
+            - name: name
+              airways:
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              id: id
+              type: type
+            - name: name
+              airways:
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              id: id
+              type: type
+          - name: name
+            id: id
+            sections:
+            - airway_point_ids:
+              - airway_point_ids
+              - airway_point_ids
+              name: name
+              id: id
+            - airway_point_ids:
+              - airway_point_ids
+              - airway_point_ids
+              name: name
+              id: id
+            junctions:
+            - name: name
+              airways:
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              id: id
+              type: type
+            - name: name
+              airways:
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              id: id
+              type: type
+          url: url
+      properties:
+        airway:
+          $ref: '#/components/schemas/Airway-Output'
+      required:
+      - airway
+      title: SingleAirwayDefinitionResponse
+      type: object
+    SingleDiscoveryServiceDetail:
+      description: A class to hold a list of URLs and the type of service and regions
+      example:
+        domain: domain
+        url: url
+      properties:
+        url:
+          title: Url
+          type: string
+        domain:
+          title: Domain
+          type: string
+      required:
+      - domain
+      - url
+      title: SingleDiscoveryServiceDetail
+      type: object
+    SubscriptionBase:
+      example:
+        time_start: 2000-01-23T04:56:07.000+00:00
+        notification_index: 0
+        time_end: 2000-01-23T04:56:07.000+00:00
+        version: version
+        sp_base_url: sp_base_url
+      properties:
+        version:
+          title: Version
+          type: string
+        notification_index:
+          title: Notification Index
+          type: integer
+        sp_base_url:
+          title: Sp Base Url
+          type: string
+        time_start:
+          format: date-time
+          title: Time Start
+          type: string
+        time_end:
+          format: date-time
+          title: Time End
+          type: string
+      required:
+      - notification_index
+      - sp_base_url
+      - time_end
+      - time_start
+      - version
+      title: SubscriptionBase
+      type: object
+    UpsertAirwayDefinitionResponsePublic:
+      description: A class to read data from the Airway table
+      example:
+        airway:
+          administrator_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          business_number: 0
+          airways:
+          - name: name
+            id: id
+            sections:
+            - airway_point_ids:
+              - airway_point_ids
+              - airway_point_ids
+              name: name
+              id: id
+            - airway_point_ids:
+              - airway_point_ids
+              - airway_point_ids
+              name: name
+              id: id
+            junctions:
+            - name: name
+              airways:
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              id: id
+              type: type
+            - name: name
+              airways:
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              id: id
+              type: type
+          - name: name
+            id: id
+            sections:
+            - airway_point_ids:
+              - airway_point_ids
+              - airway_point_ids
+              name: name
+              id: id
+            - airway_point_ids:
+              - airway_point_ids
+              - airway_point_ids
+              name: name
+              id: id
+            junctions:
+            - name: name
+              airways:
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              id: id
+              type: type
+            - name: name
+              airways:
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              - airway:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+                deviation:
+                  geometry:
+                    coordinates:
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    - - coordinates
+                      - coordinates
+                      - coordinates
+                    type: type
+              id: id
+              type: type
+          url: url
+      properties:
+        airway:
+          $ref: '#/components/schemas/Airway-Output'
+      required:
+      - airway
+      title: UpsertAirwayDefinitionResponsePublic
+      type: object
+    ValidationError:
+      example:
+        msg: msg
+        loc:
+        - Location_inner
+        - Location_inner
+        type: type
+      properties:
+        loc:
+          items:
+            $ref: '#/components/schemas/Location_inner'
+          title: Location
+          type: array
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+      type: object
+    VersionAvailabilityRead:
+      description: A class to hold version and availability of ICDS
+      example:
+        availability: unknown
+        version: version
+      properties:
+        version:
+          title: Version
+          type: string
+        availability:
+          $ref: '#/components/schemas/AvailabilityEnum'
+      required:
+      - availability
+      - version
+      title: VersionAvailabilityRead
+      type: object
+    Location_inner:
+      anyOf:
+      - type: string
+      - type: integer
+      title: Location_inner
